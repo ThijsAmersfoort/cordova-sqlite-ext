@@ -243,7 +243,7 @@ public class SQLitePlugin extends CordovaPlugin {
         OutputStream out = null;
 
         try {
-            in = this.cordova.getActivity().getAssets().open("www/" + myDBName);
+            in = this.cordova.getActivity().getAssets().open("public/" + myDBName);
             String dbPath = dbfile.getAbsolutePath();
             dbPath = dbPath.substring(0, dbPath.lastIndexOf("/") + 1);
 

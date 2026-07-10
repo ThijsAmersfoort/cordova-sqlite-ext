@@ -1,5 +1,7 @@
 # Authors
 
+The original repository was forked by Thijs Amersfoort. Authors of the original repository:
+
 ## Common Javascript
 
 - Extracted from DroidGap by @brodybits (Christopher J. Brody aka Chris Brody)

@@ -1,3 +1,37 @@
+This is a fork of the original plugin with the following changes:
+- Adapted SQLite files to work with the Capacitor framework
+- Added the option to open prepopulated databases without copying on iOS by including the `openInwww` in the opening of the database.
+
+# Instructions for proper FTS support.
+Bacause Capacitor adds the plugins differently to your xcode project, the build flags get lost. Manually add the build flags at the top of the sqlite.c amalgamation file to re-enable:
+```
+#define SQLITE_THREADSAFE 1
+#define SQLITE_DEFAULT_SYNCHRONOUS 3
+#define SQLITE_DEFAULT_MEMSTATUS 0
+#define SQLITE_OMIT_DECLTYPE 1
+#define SQLITE_OMIT_DEPRECATED 1
+#define SQLITE_OMIT_PROGRESS_CALLBACK 1
+#define SQLITE_OMIT_SHARED_CACHE 1
+#define SQLITE_TEMP_STORE 2
+#define SQLITE_OMIT_LOAD_EXTENSION 1
+#define SQLITE_ENABLE_FTS3 1
+#define SQLITE_ENABLE_FTS3_PARENTHESIS 1
+#define SQLITE_ENABLE_FTS4 1
+#define SQLITE_ENABLE_FTS5 1
+#define SQLITE_ENABLE_RTREE 1
+#define SQLITE_ENABLE_JSON1 1
+#define SQLITE_DEFAULT_PAGE_SIZE 4096
+#define SQLITE_DEFAULT_CACHE_SIZE -2000
+
+#define SQLITE_CORE 1
+#define SQLITE_AMALGAMATION 1
+#ifndef SQLITE_PRIVATE
+# define SQLITE_PRIVATE static
+#endif
+```
+
+Below the original README.md
+
 # Cordova/PhoneGap sqlite storage adapter with extra features
 
 Native SQLite component with API based on HTML5/[Web SQL (DRAFT) API](http://www.w3.org/TR/webdatabase/) for the following platforms:

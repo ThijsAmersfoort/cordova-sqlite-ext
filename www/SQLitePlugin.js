@@ -386,6 +386,7 @@
         item: function(i) {
           return rows[i];
         },
+        all: rows,
         length: rows.length
       },
       rowsAffected: response.rowsAffected || 0,

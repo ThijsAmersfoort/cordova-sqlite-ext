@@ -144,6 +144,7 @@
     NSString *dbfilename = [options objectForKey:@"name"];
 
     NSString *dblocation = [options objectForKey:@"dblocation"];
+    NSString *openInww = [options objectForKey:@"openInwww"];
     if (dblocation == NULL) dblocation = @"docs";
     // DLog(@"using db location: %@", dblocation);
 
@@ -174,23 +175,49 @@
         }
 
         @synchronized(self) {
-            const char *name = [dbname UTF8String];
             sqlite3 *db;
+            BOOL succes = false;
 
-            DLog(@"open full db path: %@", dbname);
+            if(openInww != NULL){
+                NSString * bundleRoot = [[NSBundle mainBundle] resourcePath];
+                NSString * www = [bundleRoot stringByAppendingPathComponent:@"public"];
+                NSString * prepopulatedDb = [www stringByAppendingPathComponent: dbfilename];
+                const char *name = [prepopulatedDb UTF8String];
+                // NSLog(@"Look for pre-populated DB at: %@", prepopulatedDb);
+                if ([[NSFileManager defaultManager] fileExistsAtPath:prepopulatedDb]) {
+                    NSLog(@"open full db path: %@", prepopulatedDb);
+                    succes=(sqlite3_open_v2(name, &db, SQLITE_OPEN_READONLY, NULL) == SQLITE_OK);
+                    if (!succes){
+                        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to open DB"];
+                        [self.commandDelegate sendPluginResult:pluginResult callbackId: command.callbackId];
+                        return;
+                    }
+                }
+                else{
+                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to open DB, no such file in directory www"];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId: command.callbackId];
+                    return;
+                }
+            }else{
+                const char *name = [dbname UTF8String];
+                DLog(@"open full db path: %@", dbname);
 
-            /* Option to create database from resource (pre-populated) if it does not exist: */
-            if (![[NSFileManager defaultManager] fileExistsAtPath: dbname]) {
-                NSString * createFromResource = [options objectForKey:@"createFromResource"];
-                if (createFromResource != NULL)
-                    [self createFromResource: dbfilename withDbname: dbname];
+                /* Option to create database from resource (pre-populated) if it does not exist: */
+                if (![[NSFileManager defaultManager] fileExistsAtPath: dbname]) {
+                    NSString * createFromResource = [options objectForKey:@"createFromResource"];
+                    if (createFromResource != NULL)
+                        [self createFromResource: dbfilename withDbname: dbname];
+                }
+
+                succes=(sqlite3_open(name, &db) == SQLITE_OK);
+				if (!succes) {
+                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to open DB"];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId: command.callbackId];
+                    return;
+                }
             }
-
-            if (sqlite3_open(name, &db) != SQLITE_OK) {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to open DB"];
-                [self.commandDelegate sendPluginResult:pluginResult callbackId: command.callbackId];
-                return;
-            } else {
+            
+            if(succes){
                 // TBD IGNORE result:
                 const char * err1;
                 sqlite3_db_config(db, SQLITE_DBCONFIG_DEFENSIVE, 1, NULL);
@@ -226,7 +253,7 @@
     // IMPLEMENTATION based on various sources:
     NSString * bundleRoot = [[NSBundle mainBundle] resourcePath];
 
-    NSString * www = [bundleRoot stringByAppendingPathComponent:@"www"];
+    NSString * www = [bundleRoot stringByAppendingPathComponent:@"public"];
     NSString * prepopulatedDb = [www stringByAppendingPathComponent: dbfile];
     // NSLog(@"Look for pre-populated DB at: %@", prepopulatedDb);
 
